@@ -19,8 +19,7 @@ def loadCSVfile2():
 
 #    return timeNormal[100],timeUnix[100] 时间测试
 
-    return  label,data #返回array类型的数据
-
+    return  label,data[100]
 
 
 print(loadCSVfile2())
