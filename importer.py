@@ -8,7 +8,6 @@ def loadCSVfile2():
     data = tmp[1:,0:].astype(np.str)#加载数据部分
     label = tmp[0:1].astype(np.str)#加载类别标签部分
 
-
 #分解数据集
     timeUnix = data[0:,3].astype(np.int)  #原格式时间
     timeNormal=[time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timeUnix[i])) for i in range(timeUnix.size)] #标准格式时间
