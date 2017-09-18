@@ -35,6 +35,7 @@ for fold in range(nfolds):
     eachnum_user[tmp] = 1
     avg_user = avg_user / eachnum_user
     tmp = np.array([x == 0 for x in eachnum_item])
+    avg_item[tmp] = gmr
     eachnum_item[tmp] = 1
     avg_item = avg_item / eachnum_item
     X1 = np.zeros(len(train))
