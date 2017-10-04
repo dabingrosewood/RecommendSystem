@@ -1,0 +1,89 @@
+# -*- coding: utf-8 -*-
+"""
+@author: Yitan Lou,Yixiao Tang
+"""
+
+
+import numpy as np
+import importer
+import time
+import matplotlib.pyplot as plt
+
+ratings  = importer.loadDATfile("data/ml-1m/ratings.dat")  #import the data
+#ratings=ratings[0:int(len(ratings)/2)]
+
+
+nfolds = 5
+# allocate memory for results:
+err_train = np.zeros(nfolds)
+err_test = np.zeros(nfolds)
+MAE_train = np.zeros(nfolds)
+MAE_test = np.zeros(nfolds)
+# to make sure you are able to repeat results, set the random seed to something:
+np.random.seed(29)
+max_user = np.max(ratings[:,0])
+max_item = np.max(ratings[:,1])
+avg_user = np.zeros(max_user+1)
+avg_item = np.zeros(max_item+1)
+seqs = [x % nfolds for x in range(len(ratings))]
+np.random.shuffle(seqs)
+t=np.zeros(nfolds)
+
+for fold in range(nfolds):
+
+    start = time.clock()
+    eachnum_user = np.zeros(max_user + 1)  # the number of rate of each user or item
+    eachnum_item = np.zeros(max_item + 1)
+    train_sel = np.array([x != fold for x in seqs])
+    test_sel = np.array([x == fold for x in seqs])
+    train = ratings[train_sel]
+    test = ratings[test_sel]
+#   test = test.astype(np.float)
+#   train = train.astype(np.float)
+    gmr = np.mean(train[:, 2])
+    for x in range(len(train)): #caculate average of users and average of items
+        eachnum_user[train[x][0]] = eachnum_user[train[x][0]]+1
+        eachnum_item[train[x][1]] = eachnum_item[train[x][1]]+1
+        avg_user[train[x][0]] = avg_user[train[x][0]]+train[x][2]
+        avg_item[train[x][1]] = avg_item[train[x][1]]+train[x][2]
+    # find the item or the user which has no sample in the train set
+    tmp = np.array([x == 0 for x in eachnum_user])
+    avg_user[tmp] = gmr
+    eachnum_user[tmp] = 1
+    #空为1，该用户则为全局均值
+
+    avg_user = avg_user / eachnum_user
+    tmp = np.array([x == 0 for x in eachnum_item])
+    eachnum_item[tmp] = 1
+    avg_item = avg_item / eachnum_item
+
+
+
+    pred_train = np.zeros(len(train))
+    for x in range(len(train)):
+        pred_train[x] = avg_item[train[x][1]]
+    err_train[fold] = np.sqrt(np.mean((train[:, 2] - pred_train) ** 2))
+    MAE_train[fold] = np.mean(np.abs(train[:, 2] - pred_train))
+
+
+    # test phase
+    pred_test = np.zeros(len(test))
+    for x in range(len(test)):
+        pred_test[x] = avg_item[test[x][1]]
+    err_test[fold] = np.sqrt(np.mean((test[:, 2] - pred_test) ** 2))
+    MAE_test[fold] = np.mean(np.abs(test[:, 2] - pred_test))
+
+    end = time.clock()
+    t[fold] = (end - start) / 60
+
+
+print('RMSE of train:')
+print(err_train)
+print('RMSE of test:')
+print(err_test)
+print('MAE of train:')
+print(MAE_train)
+print('MAE of test:')
+print(MAE_test)
+print("time is:")
+print(t)
